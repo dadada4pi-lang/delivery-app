@@ -936,6 +936,8 @@ function submitAttendance() {
     clockOut: document.getElementById('attClockOut').value,
     breakMin: document.getElementById('attBreak').value
   };
+  const workMins = calcWorkMin(record.clockIn, record.clockOut, record.breakMin);
+  record.workHours = workMins ? Math.floor(workMins/60) + '時間' + (workMins%60) + '分' : '';
   const key = 'att_' + currentUser;
   const arr = JSON.parse(localStorage.getItem(key) || '[]');
   arr.push(record);
