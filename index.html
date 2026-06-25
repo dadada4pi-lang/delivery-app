@@ -895,16 +895,7 @@ function applyOcrAndRoute(){
 }
 
 // ===== GAS / USER =====
-const GAS = {
-  kishi: {
-    attendance: 'https://script.google.com/macros/s/AKfycbwk-mihgmN5PD6RpA3IbZJMS-BT-ZQtUsrxbfnWNxh2yP8dPpidbQC9kh5d7z_iGDy-lQ/exec',
-    report:     'https://script.google.com/macros/s/AKfycbzZaoSLHuJWu_eobTVFOAQP-A5WA6uwL0QPDLgqQcF4udSYVPm8wDbmY427fs5F2Tb8/exec'
-  },
-  miyakawa: {
-    attendance: 'https://script.google.com/macros/s/AKfycbyXeyclLY4jqTyZdCIEQi_XWL1F-e9iTyGEAunmQvY74nqzkJ42Fmiilvb_jO3Ufe-nmQ/exec',
-    report:     'https://script.google.com/macros/s/AKfycbwJ3ehIaMzAfr8KarqNjZzZPKinGAVU4GY1fhjvuaDIQqR3i7HeQwrkHlWfaosB_ohM/exec'
-  }
-};
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwWDPpIrP9T0mssl7i2AIMoAX5nsu5g0HbI5JrfLajluVn2gYSFx-2HYrbEzxm2FgcR1g/exec';
 let currentUser = localStorage.getItem('currentUser') || null;
 
 function selectUser(user) {
@@ -952,7 +943,7 @@ function submitAttendance() {
   status.textContent = '送信中...';
   status.style.color = '#888';
   const p = new URLSearchParams(record);
-  fetch(GAS[currentUser].attendance + '?' + p.toString(), { mode: 'no-cors' })
+  fetch(GAS_URL + '?' + p.toString() + '&type=att&user=' + currentUser, { mode: 'no-cors' })
     .then(() => { status.textContent = '✅ 送信しました'; status.style.color = '#43a047'; })
     .catch(() => { status.textContent = '✅ 保存しました（オフライン）'; status.style.color = '#43a047'; });
 }
@@ -1010,7 +1001,7 @@ function submitReport() {
   status.style.color = '#888';
   const gasRows = rows.map(r => ({ facility: r.facility, visitTime: r.visitTime, requirement: r.requirement, notes: r.notes }));
   const params = new URLSearchParams({ date: today, rows: JSON.stringify(gasRows) });
-  fetch(GAS[currentUser].report + '?' + params.toString(), { mode: 'no-cors' })
+  fetch(GAS_URL + '?' + params.toString() + '&type=rep&user=' + currentUser, { mode: 'no-cors' })
     .then(() => { status.textContent = '✅ 送信しました'; status.style.color = '#43a047'; })
     .catch(() => { status.textContent = '✅ 保存しました（オフライン）'; status.style.color = '#43a047'; });
 }
