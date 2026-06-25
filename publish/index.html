@@ -292,15 +292,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI'
   <div class="card">
     <div class="sec-label">今期の勤務時間</div>
     <div id="workSummary" style="margin-bottom:16px"></div>
-    <div class="sec-label">出退勤</div>
-    <div style="display:flex;gap:8px;margin-bottom:16px">
-      <button class="btn-secondary" style="flex:1" onclick="downloadCSV('att','kishi')">岸さん CSV</button>
-      <button class="btn-secondary" style="flex:1" onclick="downloadCSV('att','miyakawa')">宮川さん CSV</button>
+    <div class="sec-label" style="margin-bottom:8px">勤務記録</div>
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      <button id="detailTabKishi" class="btn-secondary" style="flex:1;font-weight:700;background:#e8f0fe;color:var(--blue);border:2px solid var(--blue)" onclick="switchDetailTab('kishi')">岸さん</button>
+      <button id="detailTabMiyakawa" class="btn-secondary" style="flex:1" onclick="switchDetailTab('miyakawa')">宮川さん</button>
     </div>
-    <div class="sec-label">報告書</div>
+    <div id="workDetail" style="margin-bottom:16px"></div>
+    <div class="sec-label">CSVダウンロード</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <button class="btn-secondary" style="flex:1" onclick="downloadCSV('att','kishi')">岸さん 出退勤</button>
+      <button class="btn-secondary" style="flex:1" onclick="downloadCSV('att','miyakawa')">宮川さん 出退勤</button>
+    </div>
     <div style="display:flex;gap:8px;margin-bottom:16px">
-      <button class="btn-secondary" style="flex:1" onclick="downloadCSV('rep','kishi')">岸さん CSV</button>
-      <button class="btn-secondary" style="flex:1" onclick="downloadCSV('rep','miyakawa')">宮川さん CSV</button>
+      <button class="btn-secondary" style="flex:1" onclick="downloadCSV('rep','kishi')">岸さん 報告書</button>
+      <button class="btn-secondary" style="flex:1" onclick="downloadCSV('rep','miyakawa')">宮川さん 報告書</button>
     </div>
     <div style="border-top:1px solid #f0f0f0;padding-top:14px;margin-top:4px">
       <div class="sec-label">データ削除</div>
@@ -1069,6 +1074,62 @@ function renderWorkSummary() {
     </div>`;
   });
   document.getElementById('workSummary').innerHTML = html;
+  switchDetailTab(window._detailUser || 'kishi');
+}
+
+let _detailUser = 'kishi';
+function switchDetailTab(user) {
+  _detailUser = user;
+  ['kishi','miyakawa'].forEach(u => {
+    const btn = document.getElementById('detailTab' + u.charAt(0).toUpperCase() + u.slice(1));
+    if (!btn) return;
+    if (u === user) {
+      btn.style.background = '#e8f0fe'; btn.style.color = 'var(--blue)'; btn.style.border = '2px solid var(--blue)';
+    } else {
+      btn.style.background = ''; btn.style.color = ''; btn.style.border = '';
+    }
+  });
+  document.getElementById('workDetail').innerHTML = renderWorkDetail(user);
+}
+
+function renderWorkDetail(user) {
+  const arr = JSON.parse(localStorage.getItem('att_' + user) || '[]');
+  if (!arr.length) return '<div style="color:#888;text-align:center;padding:16px;font-size:13px">記録がありません</div>';
+  const months = {};
+  arr.forEach(r => {
+    const m = r.date ? r.date.slice(0, 7) : '不明';
+    if (!months[m]) months[m] = [];
+    months[m].push(r);
+  });
+  return Object.keys(months).sort().reverse().map(month => {
+    const records = months[month];
+    const totalMin = records.reduce((sum, r) => sum + (calcWorkMin(r.clockIn, r.clockOut, r.breakMin) || 0), 0);
+    const [y, m] = month.split('-');
+    const rows = records.map(r => {
+      const mins = calcWorkMin(r.clockIn, r.clockOut, r.breakMin);
+      return `<tr style="border-bottom:1px solid #f5f5f5">
+        <td style="padding:5px 4px">${r.date ? r.date.slice(5).replace('-','/') : '-'}</td>
+        <td style="text-align:center;padding:5px 4px">${r.clockIn||'-'}</td>
+        <td style="text-align:center;padding:5px 4px">${r.clockOut||'-'}</td>
+        <td style="text-align:right;padding:5px 4px;font-weight:600;color:var(--blue)">${fmtMin(mins)}</td>
+      </tr>`;
+    }).join('');
+    return `<div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;background:#f5f7fa;padding:7px 10px;border-radius:8px;margin-bottom:4px">
+        <span style="font-weight:700;font-size:14px">${y}年${parseInt(m)}月</span>
+        <span style="font-weight:800;color:var(--blue);font-size:14px">合計 ${fmtMin(totalMin)}</span>
+      </div>
+      <table style="width:100%;font-size:13px;border-collapse:collapse">
+        <tr style="color:#aaa;font-size:11px">
+          <th style="text-align:left;padding:3px 4px;font-weight:500">日付</th>
+          <th style="text-align:center;padding:3px 4px;font-weight:500">出勤</th>
+          <th style="text-align:center;padding:3px 4px;font-weight:500">退勤</th>
+          <th style="text-align:right;padding:3px 4px;font-weight:500">勤務時間</th>
+        </tr>
+        ${rows}
+      </table>
+    </div>`;
+  }).join('');
 }
 
 // ===== CSV / DATA =====
