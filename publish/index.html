@@ -946,7 +946,7 @@ function openAttendance() {
   if (saved && saved.date === today) {
     // すでに出勤済み → 退勤パネル表示
     document.getElementById('attClockIn').value = saved.clockIn;
-    document.getElementById('clockInInfo').innerHTML = `${saved.date}<br>出勤時刻：${saved.clockIn}`;
+    document.getElementById('clockInInfo').innerHTML = `<span style="color:#e53935;font-size:20px;font-weight:800">${saved.date}</span><br>出勤時刻：${saved.clockIn}`;
     document.getElementById('clockInPanel').style.display = 'none';
     document.getElementById('clockOutPanel').style.display = '';
   } else {
@@ -974,7 +974,7 @@ function submitClockIn() {
 
   // 退勤パネルへ切り替え
   setTimeout(() => {
-    document.getElementById('clockInInfo').innerHTML = `${document.getElementById('attDate').value}<br>出勤時刻：${clockIn}`;
+    document.getElementById('clockInInfo').innerHTML = `<span style="color:#e53935;font-size:20px;font-weight:800">${document.getElementById('attDate').value}</span><br>出勤時刻：${clockIn}`;
     document.getElementById('attClockOut').value = '';
     document.getElementById('attBreak').value = '';
     document.getElementById('clockOutStatus').textContent = '';
